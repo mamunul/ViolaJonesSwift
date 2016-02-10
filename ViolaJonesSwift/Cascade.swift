@@ -1,5 +1,5 @@
 //
-//  main.swift
+//  Cascade.swift
 //  ViolaJonesSwift
 //
 //  Created by Mamunul on 2/10/16.
@@ -8,14 +8,9 @@
 
 import Foundation
 
-print("Hello, World!")
-
-let p = "test"
-
-
-let vj = ViolaJones()
-
-vj.executeLearning(p, nImagePath: p )
-
-
-
+class Cascade {
+	
+	var featureArray:NSArray!
+	var featureCount:Int8!
+	var cascadeThreshold:Float!
+}
