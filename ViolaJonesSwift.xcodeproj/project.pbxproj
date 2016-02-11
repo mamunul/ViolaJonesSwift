@@ -11,6 +11,8 @@
 		0C8246D11C6B031200DF72C5 /* ViolaJones.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8246D01C6B031200DF72C5 /* ViolaJones.swift */; };
 		0C8246D31C6B0B2A00DF72C5 /* HaarFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8246D21C6B0B2A00DF72C5 /* HaarFeature.swift */; };
 		0C8246D51C6B0BFF00DF72C5 /* Cascade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8246D41C6B0BFF00DF72C5 /* Cascade.swift */; };
+		0C8246D71C6B3D7A00DF72C5 /* IntegralImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8246D61C6B3D7A00DF72C5 /* IntegralImage.swift */; };
+		0C8246D91C6B472600DF72C5 /* NSImage+IntegralImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8246D81C6B472600DF72C5 /* NSImage+IntegralImage.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,6 +33,8 @@
 		0C8246D01C6B031200DF72C5 /* ViolaJones.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViolaJones.swift; sourceTree = "<group>"; };
 		0C8246D21C6B0B2A00DF72C5 /* HaarFeature.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HaarFeature.swift; sourceTree = "<group>"; };
 		0C8246D41C6B0BFF00DF72C5 /* Cascade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Cascade.swift; sourceTree = "<group>"; };
+		0C8246D61C6B3D7A00DF72C5 /* IntegralImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IntegralImage.swift; sourceTree = "<group>"; };
+		0C8246D81C6B472600DF72C5 /* NSImage+IntegralImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSImage+IntegralImage.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +71,8 @@
 				0C8246D01C6B031200DF72C5 /* ViolaJones.swift */,
 				0C8246D21C6B0B2A00DF72C5 /* HaarFeature.swift */,
 				0C8246D41C6B0BFF00DF72C5 /* Cascade.swift */,
+				0C8246D61C6B3D7A00DF72C5 /* IntegralImage.swift */,
+				0C8246D81C6B472600DF72C5 /* NSImage+IntegralImage.swift */,
 			);
 			path = ViolaJonesSwift;
 			sourceTree = "<group>";
@@ -128,8 +134,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0C8246D91C6B472600DF72C5 /* NSImage+IntegralImage.swift in Sources */,
 				0C8246D51C6B0BFF00DF72C5 /* Cascade.swift in Sources */,
 				0C8246CA1C6B02DF00DF72C5 /* main.swift in Sources */,
+				0C8246D71C6B3D7A00DF72C5 /* IntegralImage.swift in Sources */,
 				0C8246D11C6B031200DF72C5 /* ViolaJones.swift in Sources */,
 				0C8246D31C6B0B2A00DF72C5 /* HaarFeature.swift in Sources */,
 			);

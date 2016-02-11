@@ -8,9 +8,9 @@
 
 import Foundation
 
-class Cascade {
+struct Cascade {
 	
-	var featureArray:NSArray!
-	var featureCount:Int8!
-	var cascadeThreshold:Float!
+	var featureArray:NSArray
+	var featureCount:Int8
+	var cascadeThreshold:Float
 }

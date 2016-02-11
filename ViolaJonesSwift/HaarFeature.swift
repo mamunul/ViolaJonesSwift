@@ -8,14 +8,42 @@
 
 import Foundation
 
-class HaarFeature {
+
+struct ImageFeature {
+	var featureValue:Double
+	var imageType:ImageType
+	var imageIndex:Int
 	
-	var x:Int8!
-	var y:Int8!
-	var w:Int8!
-	var h:Int8!
-	var fw:Int8!
-	var fh:Int8!
-	var featureValue:Float?
+	init(featureValue:Double, imageType:ImageType, imageIndex:Int){
+		
+		self.featureValue = featureValue
+		self.imageType = imageType
+		self.imageIndex = imageIndex
+	}
+}
+
+struct HaarFeature {
+	
+	var x:Int
+	var y:Int
+	var w:Int
+	var h:Int
+	var fw:Int
+	var fh:Int
+	var imageFeature:[ImageFeature]?
+	
+	init(x:Int, y:Int, w:Int, h:Int, fw:Int, fh:Int){
+	
+	
+		self.x = x
+		self.y = y
+		self.w = w
+		self.h = h
+		self.fh = fh
+		self.fw = fw
+		
+	
+	
+	}
 	
 }

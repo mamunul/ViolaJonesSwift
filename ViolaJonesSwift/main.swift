@@ -10,12 +10,12 @@ import Foundation
 
 print("Hello, World!")
 
-let p = "test"
+var p = ["Test Message",""]
 
 
 let vj = ViolaJones()
 
-vj.executeLearning(p, nImagePath: p )
+vj.executeLearning(p)
 
 
 
