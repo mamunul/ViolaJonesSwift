@@ -28,15 +28,17 @@ class ViolaJones {
 	
 	func executeLearning(var pImagePath:[String]) -> TrainigData{
 		
-		pImagePath = ["/Users/mamunul/Documents/MATLAB/my_experiment/faces","/Users/mamunul/Documents/MATLAB/my_experiment/nonfaces"]
+		//		pImagePath = ["/Users/mamunul/Documents/MATLAB/my_experiment/faces","/Users/mamunul/Documents/MATLAB/my_experiment/nonfaces"]
 		
-		pImageCount = 50
+		pImagePath = ["/Users/mamunul/Documents/MATLAB/my_experiment/faces","/Users/mamunul/Downloads/Face Database/nonfacecollection"]
+		
+		pImageCount = 5000
 		
 		var starttime = NSDate()
 		
-		var imageArray = extractImage(pImagePath, imageLimitArray: [pImageCount,50])
+		var imageArray = extractImage(pImagePath, imageLimitArray: [pImageCount,5000])
 		
-		var featureArray = generateHaarFeature(1000)
+		var featureArray = generateHaarFeature(-1)
 		
 		featureArray = processFeatureValue(featureArray, imageArray: imageArray)
 		
@@ -85,9 +87,9 @@ class ViolaJones {
 			
 			if i == 3
 			{
-			
+				
 				break
-			
+				
 			}
 			
 		}
@@ -141,7 +143,7 @@ class ViolaJones {
 				
 				feature.imageFeature?.updateValue(imf, forKey: imageIndex)
 				
-//				print("fv\(fv)")
+				//				print("fv\(fv)")
 				
 			}
 			
@@ -244,7 +246,7 @@ class ViolaJones {
 			let Tpm = calculateTotalPositiveAndNegativeWeight(imageArray)
 			
 			
-//			print("TPM2:\(Tpm)")
+			//			print("TPM2:\(Tpm)")
 			
 			var strongClassifier:HaarFeature = HaarFeature(x: 0, y: 0, w: 0, h: 0, fw: 0, fh: 0)
 			strongClassifier.error = 100.0
@@ -255,7 +257,7 @@ class ViolaJones {
 				
 			}
 			
-//			print("finished")
+			//			print("finished")
 			//			strongClassifier?.imageFeature = []
 			updateWeight(imageArray, strongClassifier: strongClassifier)
 			classifierArray.append(strongClassifier)
@@ -370,7 +372,7 @@ class ViolaJones {
 			if error < lowestError {
 				
 				
-//				print("error:\(error) feature index:\(feature.x),\( feature.y ),\(feature.w),\( feature.h)")
+				//				print("error:\(error) feature index:\(feature.x),\( feature.y ),\(feature.w),\( feature.h)")
 				
 				lowestError = error
 				feature.thresholdValue = imageFeature.featureValue
@@ -563,11 +565,42 @@ class ViolaJones {
 				
 				let path = imagePathArray[index]+"/"+element
 				
-				let img = readImageFromPath(path)
+				var image = readImageFromPath(path)
 				
-				if img != nil {
+				
+				
+				if image != nil {
 					
-					let integralImage = IntegralImage(image: img!)
+					
+					if (image?.size.width > 400 || image?.size.height > 400 ) && index == 1{
+						
+						
+						var nsize = image?.size
+						
+						nsize?.width /= 2
+						nsize?.height /= 2
+						
+						if nsize?.height > 5000{
+						
+						
+							continue
+						
+						}
+						
+						image = resizeImage(image!, size: nsize!)
+						
+						scrollImage(image!)
+						
+					}
+					
+					var size = NSZeroSize;
+					
+					size.width = 24;
+					size.height = 24;
+					
+					let img = resizeImage(image!, size: size)
+					
+					let integralImage = IntegralImage(image: img)
 					
 					if index == ImageType.Face.rawValue {
 						
@@ -710,7 +743,7 @@ class ViolaJones {
 		var image:NSImage?
 		var resizedImage:NSImage?
 		
-		if path.hasSuffix("pgm") {
+		if path.hasSuffix("pgm") || path.hasSuffix("jpg") {
 			
 			let imageURL = NSURL(fileURLWithPath: path, isDirectory: false)
 			
@@ -718,21 +751,16 @@ class ViolaJones {
 			image = NSImage(byReferencingURL: imageURL)
 			
 			
-//			print("size:\(image?.size)")
+			//			print("size:\(image?.size)")
 			
 			
-			var size = NSZeroSize;
 			
-			size.width = 24;
-			size.height = 24;
 			
-			resizedImage = resizeImage(image!, size: size)
-	
 			
 		}
 		
 		
-		return resizedImage;
+		return image;
 		
 	}
 	
@@ -742,6 +770,9 @@ class ViolaJones {
 		var targetFrame = NSMakeRect(0, 0, size.width, size.height)
 		var targetImage:NSImage?
 		var sourceImageRep = sourceImage.bestRepresentationForRect(targetFrame, context: nil, hints: nil)
+		
+		
+		
 		
 		
 		
@@ -756,62 +787,74 @@ class ViolaJones {
 		return targetImage!;
 	}
 	
-	func resizeImage2(sourceImage:NSImage, size:NSSize ) -> NSImage
-	{
-		let targetFrame = NSMakeRect(0, 0, size.width, size.height)
-		let targetImage = NSImage(size:size)
-		
-		targetImage.lockFocus()
-		
-		sourceImage.drawInRect(targetFrame, fromRect: CGRectMake(0, 0, size.width, size.height), operation: NSCompositingOperation.CompositeCopy, fraction: 1.0, respectFlipped: true, hints:nil)
-		
-		
-		targetImage.unlockFocus()
-		
-		return targetImage;
-	}
+	
 	
 	func scrollImage(image:NSImage){
-	
 		
-	
-	
-	
+		var size = NSZeroSize;
+		
+		size.width = 80;
+		size.height = 80;
+		
+		for var i = 0; i < Int(image.size.height - size.height) ; i += Int(size.height/3) {
+			
+			for var j = 0; j < Int(image.size.width - size.width) ; j += Int(size.width/3)  {
+				
+				
+				
+//				let rect = NSMakeRect(CGFloat(i), CGFloat(j), size.width, size.height)
+				
+				
+				let rect = NSMakeRect(CGFloat(j), CGFloat(i), size.height, size.width)
+				
+				
+				let img = cropToBounds(image, cropRect: rect, size: size)
+				
+				
+				print(rect)
+			}
+			
+			
+		}
+		
+		
+		
 	}
 	
-//	func cropToBounds(image: NSImage, width: Double, height: Double) -> NSImage {
-//		
-//		let contextImage: NSImage = NSImage(CGImage: image.CGImage)!
-//		
-//		let contextSize: CGSize = contextImage.size
-//		
-//		var posX: CGFloat = 0.0
-//		var posY: CGFloat = 0.0
-//		var cgwidth: CGFloat = CGFloat(width)
-//		var cgheight: CGFloat = CGFloat(height)
-//		
-//		// See what size is longer and create the center off of that
-//		if contextSize.width > contextSize.height {
-//			posX = ((contextSize.width - contextSize.height) / 2)
-//			posY = 0
-//			cgwidth = contextSize.height
-//			cgheight = contextSize.height
-//		} else {
-//			posX = 0
-//			posY = ((contextSize.height - contextSize.width) / 2)
-//			cgwidth = contextSize.width
-//			cgheight = contextSize.width
-//		}
-//		
-//		let rect: CGRect = CGRectMake(posX, posY, cgwidth, cgheight)
-//		
-//		// Create bitmap image from context using the rect
-//		let imageRef: CGImageRef = CGImageCreateWithImageInRect(contextImage.CGImage, rect)
-//		
-//		// Create a new image based on the imageRef and rotate back to the original orientation
-//		let image: NSImage = NSImage(CGImage: imageRef, scale: image.scale, orientation: image.imageOrientation)!
-//		
-//		return image
-//	}
+	
+	func UUIDString() ->String {
+	var theUUID = CFUUIDCreate(nil)
+	var string = CFUUIDCreateString(nil, theUUID)
+
+	return string as String;
+	}
+	
+	func cropToBounds(sourceImage: NSImage, cropRect:NSRect,size:NSSize) -> NSImage {
+		//
+		var context = NSGraphicsContext.currentContext()
+		var imageRect = NSMakeRect(0, 0, size.width, size.height)
+		var targetImage:NSImage? = NSImage(size: size)
+		
+		
+		context?.imageInterpolation = NSImageInterpolation.High
+		targetImage!.lockFocus()
+		sourceImage.drawInRect(imageRect, fromRect: cropRect, operation: NSCompositingOperation.CompositeCopy, fraction: 1.0)
+		
+		
+		
+		
+		targetImage?.unlockFocus()
+		
+		
+		var bmpImageRep = NSBitmapImageRep(data: (targetImage?.TIFFRepresentation)!)
+		
+		var data = bmpImageRep?.representationUsingType(NSBitmapImageFileType.NSPNGFileType,properties: [:])
+		
+		
+		data?.writeToFile("/Users/mamunul/Documents/generatednonface/"+UUIDString()+".png", atomically: true)
+		
+		
+		return targetImage!;
+	}
 	
 }

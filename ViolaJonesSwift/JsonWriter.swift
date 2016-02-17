@@ -48,8 +48,10 @@ class JSonWriter {
 	}
 	
 	static func saveToDisk(str:String){
+		
+		let endtime = NSDate()
 	
-		let file = "face-detection.xml" //this is the file. we will write to and read from it
+		let file = String(endtime) + "face-detection.xml" //this is the file. we will write to and read from it
 		
 
 		
