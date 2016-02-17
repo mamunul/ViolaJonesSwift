@@ -12,9 +12,33 @@ import AppKit
 
 extension NSImage {
 	
+	func resizeImage(width: CGFloat, _ height: CGFloat) -> NSImage {
+		let img = NSImage(size: CGSizeMake(width, height))
+		
+		img.lockFocus()
+		let ctx = NSGraphicsContext.currentContext()
+		ctx?.imageInterpolation = .High
+		self.drawInRect(NSMakeRect(0, 0, width, height), fromRect: NSMakeRect(0, 0, size.width, size.height), operation: .CompositeCopy, fraction: 1)
+		img.unlockFocus()
+		
+		return img
+	}
+	
 	func pixelData(isGrayScale:Bool) -> [[GrayPixel]] {
 		
-		var bmp = self.representations[0] as! NSBitmapImageRep
+		var bitmap = self.TIFFRepresentation
+		
+		var bmp = NSBitmapImageRep(data: bitmap!)!
+		
+	
+//		var bmp = self.representations[0] as! NSBitmapImageRep
+		
+//		[img lockFocus] ;
+//		let bmp = NSBitmapImageRep(focusedViewRect: NSMakeRect(0, 0, size.width, size.height))
+//		NSBitmapImageRep *bitmapRep = NSBitmap [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0.0, 0.0, [self size].width, [img size].height)] ;
+//		[img unlockFocus] ;
+		
+	
 		var data: UnsafeMutablePointer<UInt8> = bmp.bitmapData
 		var r, g, b, a: UInt8
 		var pixels: [[GrayPixel]] = []

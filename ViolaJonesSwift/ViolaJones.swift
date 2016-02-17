@@ -22,83 +22,145 @@ enum ImageType:Int{
 
 class ViolaJones {
 	
+	var pImageCount = 0
 	
+	let stageNumber = 10
 	
-	func executeLearning(var pImagePath:[String]){
+	func executeLearning(var pImagePath:[String]) -> TrainigData{
 		
 		pImagePath = ["/Users/mamunul/Documents/MATLAB/my_experiment/faces","/Users/mamunul/Documents/MATLAB/my_experiment/nonfaces"]
 		
+		pImageCount = 50
 		
+		var starttime = NSDate()
 		
-		let imageArray = extractImage(pImagePath, imageLimitArray: [10,10])
+		var imageArray = extractImage(pImagePath, imageLimitArray: [pImageCount,50])
 		
-		var featureArray = generateHaarFeature()
+		var featureArray = generateHaarFeature(1000)
 		
-		processFeatureValue(&featureArray, imageArray: imageArray)
+		featureArray = processFeatureValue(featureArray, imageArray: imageArray)
 		
+		//		clearImageData(&imageArray)
 		
+		var cascadeArray:[Cascade] = []
+		
+		var trainingData = TrainigData()
 		
 		let fRatePerCascade = 0.30
-		let dRatePerCascade = 0.90
+		let dRatePerCascade = 0.99
 		let overallF = 0.0000006
 		
-		var f:[Double] = []
-		var d:[Double] = []
+		var f = [Double](count:15, repeatedValue:1.0)
+		var d = [Double](count:15, repeatedValue:1.0)
+		
 		
 		
 		var i = 0;
-		while f[i] > fRatePerCascade {
+		var n = 0
+		while f[i] > overallF || i < stageNumber+1{
 			
 			i = i+1
-			var n = 1
+			
 			f[i] = f[i-1]
+			var cascade:Cascade?
 			
-			
-			while f[i] > fRatePerCascade {
+			while f[i] > (fRatePerCascade  * f[i-1]) {
 				
 				n++;
 				
-				adaptiveBoosing(featureArray,imageArray: imageArray,T: n)
+				cascade = adaptiveBoosting(featureArray,imageArray: imageArray,T: n)
 				
 				
+				decreaseThreshold(&cascade!,imageArray: imageArray, requiredD: (dRatePerCascade * d[i-1]))
+				
+				let fd = evaluateCascade(cascade!, imageArray: imageArray, isOnlyPositive: false)
+				
+				f[i] = fd.Fi
+				
+				break
 				
 			}
 			
+			cascadeArray.append(cascade!)
+			
+			if i == 3
+			{
+			
+				break
+			
+			}
+			
 		}
+		
+		
+		var endtime = NSDate()
+		trainingData.cascadeArray = cascadeArray
+		trainingData.cascadeCount = cascadeArray.count
+		trainingData.startTime = String(starttime)
+		trainingData.endTime = String(endtime)
+		trainingData.codeLink = "https://github.com/mamunul/ViolaJonesSwift.git"
+		trainingData.pFaceCount = pImageCount
+		
+		return trainingData
+	}
+	
+	func resizeImage(){
 		
 		
 		
 		
 	}
 	
-	func processFeatureValue(inout featureArray:[HaarFeature], imageArray:[IntegralImage]){
+	func clearImageData(inout imageArray:[IntegralImage]){
 		
+		
+		
+		for image in imageArray {
+			
+			image.pixelData = []
+			
+			
+		}
+		
+	}
+	
+	func processFeatureValue(featureArray:[HaarFeature], imageArray:[Int:IntegralImage]) -> [HaarFeature]{
+		
+		
+		var updatedFeatureArray = [HaarFeature]()
 		
 		for var feature in featureArray {
 			
-			var i = 0
-			var featureValue:[ImageFeature] = []
-			for image in imageArray {
+			
+			for (imageIndex,image) in imageArray {
 				
 				
 				let fv = calculateFeatureValue(feature, integralImage: image)
 				
+				let imf = ImageFeature(featureValue: fv, imageType: image.imageType, imageIndex: imageIndex)
 				
-				let imf = ImageFeature(featureValue: fv, imageType: image.imageType, imageIndex: i)
-				i++
-				featureValue.append(imf)
+				feature.imageFeature?.updateValue(imf, forKey: imageIndex)
+				
+//				print("fv\(fv)")
 				
 			}
 			
-			feature.featureValue = featureValue
+			updatedFeatureArray.append(feature)
 			
 		}
 		
-		
+		return updatedFeatureArray
 	}
 	
 	
 	func calculateFeatureValue(feature:HaarFeature, integralImage:IntegralImage) ->Double{
+		
+		
+		
+		guard  (feature.imageFeature?.count < 1 || feature.imageFeature![integralImage.index!] == nil) else {
+			//
+			return (feature.imageFeature![integralImage.index!]?.featureValue)!
+		}
 		
 		
 		var featureValue = 0.0
@@ -108,27 +170,27 @@ class ViolaJones {
 		var pixelSum:[Double] = []
 		//
 		var p = 0
-		let dx = feature.w / feature.fw
+		let dx = feature.w! / feature.fw!
 		
-		let dy = feature.h / feature.fh
-		for var nx = feature.x; nx <= (feature.x + feature.w - dx); nx += dx {
+		let dy = feature.h! / feature.fh!
+		for var nx = feature.x; nx <= (feature.x! + feature.w! - dx); nx! += dx {
 			
-			for var ny = feature.y; ny <= (feature.y + feature.h - dy); ny += dy {
+			for var ny = feature.y!; ny <= (feature.y! + feature.h! - dy); ny += dy {
 				var A = 0.0, B = 0.0, C = 0.0, D = 0.0
 				
 				
-				
-				A = Double(integralImage.image[nx - 1 + dx][ny - 1 + dy].p)
+				A = Double(integralImage.pixelData[nx! - 1 + dx][ny - 1 + dy].p)
 				if ny > 0 {
-					C = Double(integralImage.image[nx - 1 + dx][ny - 1].p)
+					C = Double(integralImage.pixelData[nx! - 1 + dx][ny - 1].p)
 				}
 				if nx > 0{
-					B = Double(integralImage.image[nx - 1][ny - 1 + dy].p)
+					B = Double(integralImage.pixelData[nx! - 1][ny - 1 + dy].p)
 				}
 				if nx > 0 && ny > 0{
-					D = Double(integralImage.image[nx - 1][ny - 1].p)
+					D = Double(integralImage.pixelData[nx! - 1][ny - 1].p)
 				}
-				pixelSum[p] = A - B - C + D
+				pixelSum.append( A - B - C + D)
+				
 				
 				p += 1
 				
@@ -166,73 +228,270 @@ class ViolaJones {
 	}
 	
 	
-	private func adaptiveBoosing(featureArray:[HaarFeature], var imageArray:[IntegralImage], T:Int){
+	private func adaptiveBoosting(featureArray:[HaarFeature], var imageArray:[Int:IntegralImage], T:Int) -> Cascade{
 		
-		var cascadeArray:[Cascade] = []
+		//		var cascadeArray:[Cascade] = []
+		var cascade = Cascade()
+		var classifierArray:[HaarFeature] = []
 		
 		initializeWeight(&imageArray)
-		
-		for index in 0...T {
+		cascade.cascadeThreshold = 0.0
+		print("adaboost started")
+		for _ in 0...T {
 			
 			normalizeWeight(&imageArray)
 			
-			var T = calculateTotalPositiveAndNegativeWeight(imageArray)
+			let Tpm = calculateTotalPositiveAndNegativeWeight(imageArray)
+			
+			
+//			print("TPM2:\(Tpm)")
+			
+			var strongClassifier:HaarFeature = HaarFeature(x: 0, y: 0, w: 0, h: 0, fw: 0, fh: 0)
+			strongClassifier.error = 100.0
+			
+			for var feature in featureArray {
+				
+				featureValueWithLowestError(&feature,strongClassifier:&strongClassifier,imageArray: imageArray, T: Tpm)
+				
+			}
+			
+//			print("finished")
+			//			strongClassifier?.imageFeature = []
+			updateWeight(imageArray, strongClassifier: strongClassifier)
+			classifierArray.append(strongClassifier)
+			
+			cascade.cascadeThreshold! += (strongClassifier.alpha)!
 			
 			
 			
-			for feature in featureArray {
+		}
+		print("adaboost ended")
+		
+		//		for var classifier in classifierArray {
+		//
+		//
+		//			classifier.imageFeature = []
+		//
+		//		}
+		
+		
+		cascade.featureArray = classifierArray
+		cascade.featureCount = classifierArray.count
+		cascade.nonFaceImageCount = pImageCount - imageArray.count
+		
+		
+		return cascade
+		
+	}
+	
+	func updateWeight(imageArray:[Int:IntegralImage],strongClassifier:HaarFeature){
+		
+		
+		
+		
+		
+		for (index,image) in imageArray {
+			
+			
+			let fv = calculateFeatureValue(strongClassifier, integralImage: image)
+			
+			var isFace = false
+			
+			if Double(strongClassifier.polarity!) * fv < Double(strongClassifier.polarity!) * strongClassifier.thresholdValue!{
 				
 				
-				featureValueWithLowestError(feature)
 				
+				isFace = true
+			}
+			
+			
+			if (isFace && image.imageType == ImageType.Face) || (!isFace && image.imageType == ImageType.NonFace){
+				
+				
+				image.weight! *= strongClassifier.beta!
+				
+			}
+			
+			
+		}
+		
+	}
+	
+	
+	func featureValueWithLowestError(inout feature:HaarFeature, inout strongClassifier:HaarFeature, imageArray:[Int:IntegralImage], T:(Tplus:Double,Tmin:Double)){
+		
+		
+		var imf = feature.imageFeature!
+		
+		//		let imageFeatureArray = (imf).sort({$0.featureValue < $1.featureValue})
+		
+		var Splus = 0.0
+		var Smin = 0.0
+		
+		var lowestError = 1.0;
+		
+		lowestError = (strongClassifier.error)!
+		
+		let imageFeatureArray = imf.sort { ( f:(Int, ImageFeature), l:(Int, ImageFeature)) -> Bool in
+			
+			f.1.featureValue < l.1.featureValue
+		}
+		
+		
+		for (index,imageFeature) in imageFeatureArray{
+			
+			
+			//			let imageFeature = imageFeatureArray[index]
+			let image = imageArray[index]
+			
+			if imageFeature.imageType == ImageType.Face {
+				
+				Splus += image!.weight!
+				
+			}else {
+				
+				Smin += image!.weight!
+				
+			}
+			
+			let v1 = Splus + T.Tmin - Smin
+			let v2 = Smin + T.Tplus - Splus
+			
+			
+			let error = min(v1, v2)
+			
+			if error < 0 {
+				
+				print("error")
+				
+			}
+			feature.error = error
+			
+			if error < lowestError {
+				
+				
+//				print("error:\(error) feature index:\(feature.x),\( feature.y ),\(feature.w),\( feature.h)")
+				
+				lowestError = error
+				feature.thresholdValue = imageFeature.featureValue
+				
+				var beta = calculateBeta(error)
+				feature.alpha = calculateAlpha(beta)
+				feature.beta = beta
+				if error == v1 {
+					
+					feature.polarity = -1
+					
+				}else {
+					
+					feature.polarity = 1
+					
+				}
+				
+				//				strongClassifier = HaarFeature()
+				strongClassifier = feature
+				
+				
+				if isnan(strongClassifier.alpha!){
+					print("print")
+					
+				}
+				//				strongClassifier.alpha = feature.alpha
+			}
+			
+		}
+		
+		
+		
+	}
+	
+	func calculateBeta(error:Double) -> Double{
+		
+		
+		let beta = error/(1-error)
+		
+		return beta
+		
+	}
+	
+	
+	func calculateAlpha(beta:Double) -> Double{
+		
+		
+		let alpha = log10(1/beta)
+		
+		return alpha
+	}
+	
+	private func calculateTotalPositiveAndNegativeWeight(imageArray:[Int:IntegralImage]) -> (Tplus:Double,Tmin:Double){
+		
+		var Tplus = 0.0, Tmin = 0.0
+		
+		
+		for (_,image) in imageArray {
+			
+			
+			if image.imageType == ImageType.Face {
+				
+				Tplus += image.weight!
+				
+			} else {
+				
+				
+				Tmin += image.weight!
 				
 			}
 			
 		}
 		
 		
+		return(Tplus,Tmin)
+		
 	}
 	
-	func featureValueWithLowestError(var feature:HaarFeature){
-	
-	
-		(feature.imageFeature)?.sortInPlace({$0.featureValue > $1.featureValue})
+	private func initializeWeight(inout imageArray:[Int:IntegralImage]){
 		
+		let nImageCount = imageArray.count - pImageCount
 		
-		for featureValue in feature.imageFeature! {
-		
-		
+		for (_,image) in imageArray{
 			
-		
+			
+			if image.imageType == ImageType.Face {
+				
+				image.weight = 1 / Double(2*pImageCount)
+				
+			} else {
+				
+				image.weight = 1 / Double(2*nImageCount)
+			}
+			
+			
 		}
-	
-	
-	}
-
-	
-	private func calculateTotalPositiveAndNegativeWeight(imageArray:[IntegralImage]) -> (Tplus:Double,Tmin:Double){
-	
-		
-	
-	
-		
-		return(3.0,9.0)
-	
-	}
-	
-	private func initializeWeight(inout imageArray:[IntegralImage]){
-		
 		
 		
 	}
 	
 	
-	private func normalizeWeight(inout imageArray:[IntegralImage]){
+	private func normalizeWeight(inout imageArray:[Int:IntegralImage]){
 		
+		
+		var sum = 0.0
+		
+		for (_,image) in imageArray{
+			
+			sum += image.weight!
+			
+		}
+		
+		for (_,image) in imageArray{
+			
+			image.weight  = image.weight! / sum
+			
+		}
 		
 	}
 	
-	private func generateHaarFeature() ->[HaarFeature]{
+	private func generateHaarFeature(limit:Int) ->[HaarFeature]{
 		
 		let window = 24
 		
@@ -241,23 +500,38 @@ class ViolaJones {
 		
 		var featureArray:[HaarFeature] = []
 		
+		var i = 0
+		
 		for point in featureTypeArray {
 			
-			for var width = point.x; width < (window + 1); ++width{
-				for var height = point.y; height < (window + 1); ++height{
+			for var width = point.x; width <= window; width += point.x{
+				for var height = point.y; height <= window; height += point.y{
 					
-					for var pos_x = 1; pos_x<(window+1) - width; ++pos_x{
-						for var pos_y = 1;pos_y<(window+1) - height; ++pos_y{
+					for var pos_x = 0; pos_x <= window - width; ++pos_x{
+						for var pos_y = 0;pos_y <= window - height; ++pos_y{
 							
 							
 							let hf = HaarFeature(x:pos_x, y:pos_y, w:width, h:height, fw:point.x, fh:point.y)
 							
 							featureArray.append(hf)
 							
-							
+							i++
 						}
 					}
+					if i > limit && limit > 1 {
+						
+						break
+					}
 				}
+				if i > limit && limit > 1  {
+					
+					break
+				}
+			}
+			
+			if i > limit && limit > 1  {
+				
+				break
 			}
 			
 		}
@@ -266,7 +540,7 @@ class ViolaJones {
 		
 	}
 	
-	private  func extractImage(imagePathArray:[String], imageLimitArray:[Int]) -> [IntegralImage]{
+	private  func extractImage(imagePathArray:[String], imageLimitArray:[Int]) -> [Int:IntegralImage]{
 		
 		
 		//		print("path:\(imagePathArray[0])")
@@ -274,9 +548,9 @@ class ViolaJones {
 		let fileManager = NSFileManager.defaultManager()
 		
 		
-		var imageArray:[IntegralImage] = []
+		var imageArray = [Int:IntegralImage]()
 		
-		
+		var imageIndex = 0;
 		for index in 0...1 {
 			
 			
@@ -300,9 +574,10 @@ class ViolaJones {
 						integralImage.imageType = ImageType.Face
 						
 					}
+					integralImage.index = imageIndex
+					imageArray.updateValue(integralImage, forKey: imageIndex)
 					
-					imageArray.append(integralImage)
-					
+					imageIndex++
 					count++;
 					if count == imageLimitArray[index]{
 						
@@ -319,45 +594,224 @@ class ViolaJones {
 		
 	}
 	
-	private func evaluateCascade(){
+	private func evaluateCascade(cascade:Cascade,imageArray:[Int:IntegralImage], isOnlyPositive:Bool) -> (Fi:Double, Di:Double){
+		
+		var d = 0.0
+		var f = 0.0
+		
+		let nImageCount = imageArray.count - pImageCount
 		
 		
+		if !isOnlyPositive {
+			
+			for (_,image) in imageArray {
+				
+				
+				if image.imageType == ImageType.Face {
+					
+					d += detectFace(cascade, image:image) ? 1 : 0
+					
+				} else {
+					
+					f += detectFace(cascade, image:image) ? 1 : 0 // have confusion 1:0 or 0:1
+					
+				}
+				
+				
+			}
+			
+			d /= Double(pImageCount)
+			
+			f /= Double(nImageCount)
+			
+		}else{
+			var i = 0
+			
+			for (_,image) in imageArray {
+				
+				
+				if image.imageType == ImageType.Face {
+					i++
+					d += detectFace(cascade, image:image) ? 1 : 0
+					
+				}
+				
+				
+			}
+			
+			d /= Double(pImageCount)
+			
+			
+		}
+		
+		return (f,d)
 		
 	}
 	
-	private func decreaseThreshold(){
+	private func decreaseThreshold(inout cascade:Cascade,imageArray:[Int:IntegralImage],requiredD:Double) {
+		
+		var minThreshold = 0.0, maxThreshold = cascade.cascadeThreshold!/2
 		
 		
+		while Int(maxThreshold * 1000) != Int(minThreshold * 1000) {
+			
+			var newThreshold = (minThreshold + maxThreshold)/2
+			cascade.cascadeThreshold = newThreshold
+			
+			let fd = evaluateCascade(cascade,imageArray: imageArray, isOnlyPositive: true)
+			
+			
+			if fd.Di < requiredD {
+				
+				maxThreshold = newThreshold
+				
+			}else {
+				
+				minThreshold = newThreshold
+				
+			}
+		}
 		
 	}
 	
-	private func detectFace(){
+	private func detectFace(cascade:Cascade, image:IntegralImage) -> Bool{
 		
 		
+		var res = 0.0
 		
+		for classifier in cascade.featureArray! {
+			
+			//			classifier.imageFeature.
+			
+			let fv = calculateFeatureValue(classifier, integralImage: image)
+			
+			if Double(classifier.polarity!) * fv < Double(classifier.polarity!) * classifier.thresholdValue! {
+				
+				res += classifier.alpha!
+			}
+			
+		}
+		
+		
+		if res < cascade.cascadeThreshold{
+			
+			return false
+			
+		}else {
+			
+			return true
+			
+		}
 		
 	}
 	
 	private func readImageFromPath(path:String) ->NSImage?{
 		
 		var image:NSImage?
+		var resizedImage:NSImage?
 		
-		if path.hasSuffix("pgm"){
+		if path.hasSuffix("pgm") {
 			
 			let imageURL = NSURL(fileURLWithPath: path, isDirectory: false)
 			
 			
 			image = NSImage(byReferencingURL: imageURL)
 			
-			//			print("image:\(image!.size)")
-			//			count++
+			
+//			print("size:\(image?.size)")
+			
+			
+			var size = NSZeroSize;
+			
+			size.width = 24;
+			size.height = 24;
+			
+			resizedImage = resizeImage(image!, size: size)
+	
 			
 		}
 		
 		
-		return image;
+		return resizedImage;
 		
 	}
 	
+	func resizeImage(sourceImage:NSImage, size:NSSize ) -> NSImage
+	{
+		
+		var targetFrame = NSMakeRect(0, 0, size.width, size.height)
+		var targetImage:NSImage?
+		var sourceImageRep = sourceImage.bestRepresentationForRect(targetFrame, context: nil, hints: nil)
+		
+		
+		
+		targetImage = NSImage(size:size)
+		
+		targetImage!.lockFocus()
+		
+		sourceImageRep?.drawInRect(targetFrame)
+		//	[sourceImageRep drawInRect: targetFrame];
+		targetImage?.unlockFocus()
+		
+		return targetImage!;
+	}
+	
+	func resizeImage2(sourceImage:NSImage, size:NSSize ) -> NSImage
+	{
+		let targetFrame = NSMakeRect(0, 0, size.width, size.height)
+		let targetImage = NSImage(size:size)
+		
+		targetImage.lockFocus()
+		
+		sourceImage.drawInRect(targetFrame, fromRect: CGRectMake(0, 0, size.width, size.height), operation: NSCompositingOperation.CompositeCopy, fraction: 1.0, respectFlipped: true, hints:nil)
+		
+		
+		targetImage.unlockFocus()
+		
+		return targetImage;
+	}
+	
+	func scrollImage(image:NSImage){
+	
+		
+	
+	
+	
+	}
+	
+//	func cropToBounds(image: NSImage, width: Double, height: Double) -> NSImage {
+//		
+//		let contextImage: NSImage = NSImage(CGImage: image.CGImage)!
+//		
+//		let contextSize: CGSize = contextImage.size
+//		
+//		var posX: CGFloat = 0.0
+//		var posY: CGFloat = 0.0
+//		var cgwidth: CGFloat = CGFloat(width)
+//		var cgheight: CGFloat = CGFloat(height)
+//		
+//		// See what size is longer and create the center off of that
+//		if contextSize.width > contextSize.height {
+//			posX = ((contextSize.width - contextSize.height) / 2)
+//			posY = 0
+//			cgwidth = contextSize.height
+//			cgheight = contextSize.height
+//		} else {
+//			posX = 0
+//			posY = ((contextSize.height - contextSize.width) / 2)
+//			cgwidth = contextSize.width
+//			cgheight = contextSize.width
+//		}
+//		
+//		let rect: CGRect = CGRectMake(posX, posY, cgwidth, cgheight)
+//		
+//		// Create bitmap image from context using the rect
+//		let imageRef: CGImageRef = CGImageCreateWithImageInRect(contextImage.CGImage, rect)
+//		
+//		// Create a new image based on the imageRef and rotate back to the original orientation
+//		let image: NSImage = NSImage(CGImage: imageRef, scale: image.scale, orientation: image.imageOrientation)!
+//		
+//		return image
+//	}
 	
 }

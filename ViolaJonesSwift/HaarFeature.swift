@@ -13,28 +13,41 @@ struct ImageFeature {
 	var featureValue:Double
 	var imageType:ImageType
 	var imageIndex:Int
+//	var imageWeight:Double?
 	
 	init(featureValue:Double, imageType:ImageType, imageIndex:Int){
 		
 		self.featureValue = featureValue
 		self.imageType = imageType
 		self.imageIndex = imageIndex
+		
 	}
 }
 
 struct HaarFeature {
 	
-	var x:Int
-	var y:Int
-	var w:Int
-	var h:Int
-	var fw:Int
-	var fh:Int
-	var imageFeature:[ImageFeature]?
+	var x:Int?
+	var y:Int?
+	var w:Int?
+	var h:Int?
+	var fw:Int?
+	var fh:Int?
+	var imageFeature:[Int:ImageFeature]?
+	var thresholdValue:Double?
+	var polarity:Int?
+	var error:Double?
+	var alpha:Double?
+	var beta:Double?
+	
+	init(){
+	
+		
+		
+	
+	}
 	
 	init(x:Int, y:Int, w:Int, h:Int, fw:Int, fh:Int){
-	
-	
+		
 		self.x = x
 		self.y = y
 		self.w = w
@@ -42,7 +55,13 @@ struct HaarFeature {
 		self.fh = fh
 		self.fw = fw
 		
+		imageFeature = [Int:ImageFeature]()
+		
+	}
 	
+	mutating func setImageFeature(imageFeature:[Int:ImageFeature]){
+	
+	self.imageFeature = imageFeature
 	
 	}
 	

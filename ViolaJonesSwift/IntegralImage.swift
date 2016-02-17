@@ -19,12 +19,15 @@ class IntegralImage {
 	var width:Int?
 	var imageType:ImageType = ImageType.NonFace
 	var weight:Double?
-	var image:[[GrayPixel]]
+	var pixelData:[[GrayPixel]]
+	var index:Int?
+	
+	var reUse:Bool = true
 
 	
 	init(image:NSImage){
 		
-		self.image = image.pixelData(true)
+		self.pixelData = image.pixelData(true)
 		
 		height = (Int)(image.size.height)
 		width = (Int)(image.size.width)
@@ -39,7 +42,7 @@ class IntegralImage {
 		let sd = getStandardDeviation(mean)
 		
 		
-		print("sd:\(sd)")
+//		print("sd:\(sd)")
 		
 		normalizeImage(sd, mean: mean)
 	
@@ -58,22 +61,22 @@ class IntegralImage {
 				
 				if row > 0 {
 				
-						a = Double((image[row-1][col]).p)
+						a = Double((pixelData[row-1][col]).p)
 				}
 				
 				if col > 0 {
 				
-					b = Double(image[row][col - 1].p)
+					b = Double(pixelData[row][col - 1].p)
 				}
 				
 				if row > 0 && col > 0 {
 				
-					c = Double(image[row - 1][col - 1].p)
+					c = Double(pixelData[row - 1][col - 1].p)
 				
 				}
 				
 				
-				image[row][col].p = image[row][col].p + Float(a) + Float(b) - Float(c)
+				pixelData[row][col].p = pixelData[row][col].p + Float(a) + Float(b) - Float(c)
 			}
 		}
 
@@ -88,11 +91,11 @@ class IntegralImage {
 				
 				if Int(sd) == 0 {
 					
-					image[row][col].p = Float(image[row][col].p) - Float(mean)
+					pixelData[row][col].p = Float(pixelData[row][col].p) - Float(mean)
 				
 				}else{
 				
-					image[row][col].p = (Float(image[row][col].p) - Float(mean)) / Float(2 * sd);
+					pixelData[row][col].p = (Float(pixelData[row][col].p) - Float(mean)) / Float(2 * sd);
 				
 				}
 				
@@ -112,7 +115,7 @@ class IntegralImage {
 		for row in 0..<width! {
 			for col in 0..<height! {
 
-				sum = sum + Int64((image[row][col]).p)
+				sum = sum + Int64((pixelData[row][col]).p)
 				
 			}
 
@@ -135,7 +138,7 @@ class IntegralImage {
 			for col in 0..<height! {
 				
 //				sum = sum + Int64((image[row][col]).p)
-				subtraction = Int64((image[row][col]).p) - Int64( mean);
+				subtraction = Int64((pixelData[row][col]).p) - Int64( mean);
 				sum = sum + subtraction * subtraction;
 				
 			}

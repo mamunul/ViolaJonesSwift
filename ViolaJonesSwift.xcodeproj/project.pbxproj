@@ -7,12 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0C0BE2811C74521300729D6F /* TrainingData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C0BE2801C74521300729D6F /* TrainingData.swift */; };
 		0C8246CA1C6B02DF00DF72C5 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8246C91C6B02DF00DF72C5 /* main.swift */; };
 		0C8246D11C6B031200DF72C5 /* ViolaJones.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8246D01C6B031200DF72C5 /* ViolaJones.swift */; };
 		0C8246D31C6B0B2A00DF72C5 /* HaarFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8246D21C6B0B2A00DF72C5 /* HaarFeature.swift */; };
 		0C8246D51C6B0BFF00DF72C5 /* Cascade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8246D41C6B0BFF00DF72C5 /* Cascade.swift */; };
 		0C8246D71C6B3D7A00DF72C5 /* IntegralImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8246D61C6B3D7A00DF72C5 /* IntegralImage.swift */; };
 		0C8246D91C6B472600DF72C5 /* NSImage+IntegralImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8246D81C6B472600DF72C5 /* NSImage+IntegralImage.swift */; };
+		0CF20F371C71D5B80008EEFA /* JsonWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF20F361C71D5B80008EEFA /* JsonWriter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,6 +30,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0C0BE2801C74521300729D6F /* TrainingData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TrainingData.swift; sourceTree = "<group>"; };
 		0C8246C61C6B02DF00DF72C5 /* ViolaJonesSwift */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ViolaJonesSwift; sourceTree = BUILT_PRODUCTS_DIR; };
 		0C8246C91C6B02DF00DF72C5 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		0C8246D01C6B031200DF72C5 /* ViolaJones.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViolaJones.swift; sourceTree = "<group>"; };
@@ -35,6 +38,7 @@
 		0C8246D41C6B0BFF00DF72C5 /* Cascade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Cascade.swift; sourceTree = "<group>"; };
 		0C8246D61C6B3D7A00DF72C5 /* IntegralImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IntegralImage.swift; sourceTree = "<group>"; };
 		0C8246D81C6B472600DF72C5 /* NSImage+IntegralImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSImage+IntegralImage.swift"; sourceTree = "<group>"; };
+		0CF20F361C71D5B80008EEFA /* JsonWriter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JsonWriter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +77,8 @@
 				0C8246D41C6B0BFF00DF72C5 /* Cascade.swift */,
 				0C8246D61C6B3D7A00DF72C5 /* IntegralImage.swift */,
 				0C8246D81C6B472600DF72C5 /* NSImage+IntegralImage.swift */,
+				0CF20F361C71D5B80008EEFA /* JsonWriter.swift */,
+				0C0BE2801C74521300729D6F /* TrainingData.swift */,
 			);
 			path = ViolaJonesSwift;
 			sourceTree = "<group>";
@@ -135,7 +141,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				0C8246D91C6B472600DF72C5 /* NSImage+IntegralImage.swift in Sources */,
+				0CF20F371C71D5B80008EEFA /* JsonWriter.swift in Sources */,
 				0C8246D51C6B0BFF00DF72C5 /* Cascade.swift in Sources */,
+				0C0BE2811C74521300729D6F /* TrainingData.swift in Sources */,
 				0C8246CA1C6B02DF00DF72C5 /* main.swift in Sources */,
 				0C8246D71C6B3D7A00DF72C5 /* IntegralImage.swift in Sources */,
 				0C8246D11C6B031200DF72C5 /* ViolaJones.swift in Sources */,
@@ -259,6 +267,7 @@
 				0C8246CF1C6B02DF00DF72C5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

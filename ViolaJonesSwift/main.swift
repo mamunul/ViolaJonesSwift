@@ -15,7 +15,12 @@ var p = ["Test Message",""]
 
 let vj = ViolaJones()
 
-vj.executeLearning(p)
+var td = vj.executeLearning(p)
+
+
+var xml = JSonWriter.writeJson(td)
+
+JSonWriter.saveToDisk(xml)
 
 
 

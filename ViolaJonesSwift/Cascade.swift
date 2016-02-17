@@ -10,7 +10,9 @@ import Foundation
 
 struct Cascade {
 	
-	var featureArray:NSArray
-	var featureCount:Int8
-	var cascadeThreshold:Float
+	var featureArray:[HaarFeature]?
+	var featureCount:Int?
+	var cascadeThreshold:Double? = 0.0
+	var nonFaceImageCount:Int?
+	
 }
