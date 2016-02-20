@@ -16,7 +16,7 @@ struct Point {
 
 enum ImageType:Int{
 	
-	case Face = 0, NonFace
+	case Face = 0, NonFace,All
 }
 
 
@@ -24,7 +24,11 @@ class ViolaJones {
 	
 	var pImageCount = 0
 	
+	var nImageCount = 0
+	
 	let stageNumber = 10
+	
+	//	var nonFaceBackgroundImageArray = [String]()
 	
 	func executeLearning(var pImagePath:[String]) -> TrainigData{
 		
@@ -33,14 +37,19 @@ class ViolaJones {
 		pImagePath = ["/Users/mamunul/Documents/MATLAB/my_experiment/faces","/Users/mamunul/Downloads/Face Database/nonfacecollection"]
 		
 		pImageCount = 5000
+		nImageCount = 5000
 		
 		var starttime = NSDate()
 		
-		var imageArray = extractImage(pImagePath, imageLimitArray: [pImageCount,5000])
+		var backgroundImageArray  = traverseNonFaceImage(pImagePath[1], limit: 180)
+		
+		var imageArray = extractPNormalizedImage(pImagePath[0], imageLimit: pImageCount)
+		
+		
 		
 		var featureArray = generateHaarFeature(-1)
 		
-		featureArray = processFeatureValue(featureArray, imageArray: imageArray)
+		featureArray = processFeatureValue(featureArray, imageArray: imageArray,imageType: ImageType.Face)
 		
 		//		clearImageData(&imageArray)
 		
@@ -52,8 +61,8 @@ class ViolaJones {
 		let dRatePerCascade = 0.99
 		let overallF = 0.0000006
 		
-		var f = [Double](count:15, repeatedValue:1.0)
-		var d = [Double](count:15, repeatedValue:1.0)
+		var f = [Double](count:25, repeatedValue:1.0)
+		var d = [Double](count:25, repeatedValue:1.0)
 		
 		
 		
@@ -61,7 +70,16 @@ class ViolaJones {
 		var n = 0
 		while f[i] > overallF || i < stageNumber+1{
 			
+			
+			
+			
 			i = i+1
+			
+			print("cascade started:\(i)")
+			
+			extractNNormalizedImageIn(&imageArray, bgImagePathArray: backgroundImageArray, imageLimit: nImageCount,stageNo: i )
+			
+			featureArray = processFeatureValue(featureArray, imageArray: imageArray,imageType: ImageType.NonFace)
 			
 			f[i] = f[i-1]
 			var cascade:Cascade?
@@ -73,22 +91,26 @@ class ViolaJones {
 				cascade = adaptiveBoosting(featureArray,imageArray: imageArray,T: n)
 				
 				
+				
 				decreaseThreshold(&cascade!,imageArray: imageArray, requiredD: (dRatePerCascade * d[i-1]))
 				
-				let fd = evaluateCascade(cascade!, imageArray: imageArray, isOnlyPositive: false)
+				let fd = evaluateCascade(cascade!, imageArray: &imageArray, imageType: ImageType.All,toDelete: false)
 				
 				f[i] = fd.Fi
 				
-				break
+//				break
 				
 			}
 			
 			cascadeArray.append(cascade!)
+			print("cascade ended:\(i)")
+			
+			evaluateCascade(cascade!, imageArray: &imageArray, imageType: ImageType.NonFace, toDelete: true)
 			
 			if i == 3
 			{
 				
-				break
+//				break
 				
 			}
 			
@@ -126,26 +148,65 @@ class ViolaJones {
 		
 	}
 	
-	func processFeatureValue(featureArray:[HaarFeature], imageArray:[Int:IntegralImage]) -> [HaarFeature]{
+	func processFeatureValue( featureArray:[HaarFeature], imageArray:[Int:IntegralImage], imageType:ImageType) -> [HaarFeature]{
 		
 		
 		var updatedFeatureArray = [HaarFeature]()
 		
-		for var feature in featureArray {
+		for  var feature in featureArray {
+			
+			if imageType == ImageType.NonFace {
+				
+				for (key,imageFeature) in feature.imageFeature! {
+				
+					
+					if imageFeature.imageType == ImageType.NonFace {
+						
+						let index = feature.imageFeature?.indexForKey(key)
+						guard index == nil else {
+					
+							feature.imageFeature?.removeAtIndex(index!)
+							
+							continue
+						}
+					
+					}
+				
+				
+				}
+				
+
+				
+				
+			}
 			
 			
 			for (imageIndex,image) in imageArray {
+				
+				
+//				if imageType == ImageType.NonFace && image.imageType == ImageType.Face{
+//				
+//				
+//					continue
+//				
+//				}
+				
+			
 				
 				
 				let fv = calculateFeatureValue(feature, integralImage: image)
 				
 				let imf = ImageFeature(featureValue: fv, imageType: image.imageType, imageIndex: imageIndex)
 				
+//				feature.appendImageFeature(imageIndex, value: imf)
+				
 				feature.imageFeature?.updateValue(imf, forKey: imageIndex)
 				
 				//				print("fv\(fv)")
 				
 			}
+			
+//			feature.imageFeature
 			
 			updatedFeatureArray.append(feature)
 			
@@ -542,10 +603,122 @@ class ViolaJones {
 		
 	}
 	
-	private  func extractImage(imagePathArray:[String], imageLimitArray:[Int]) -> [Int:IntegralImage]{
+	private func traverseNonFaceImage( path:String, limit:Int) -> [String]{
+		
+		var backgroundImagePathArray = [String]()
 		
 		
-		//		print("path:\(imagePathArray[0])")
+		let fileManager = NSFileManager.defaultManager()
+		
+		let enumerator:NSDirectoryEnumerator = fileManager.enumeratorAtPath(path)!
+		
+		
+		while let element = enumerator.nextObject() as? String{
+			let path = path+"/"+element
+			
+			if path.hasSuffix("pgm") || path.hasSuffix("jpg") {
+				
+				
+				
+				backgroundImagePathArray.append(path)
+				
+			}
+			
+		}
+		
+		return backgroundImagePathArray
+		
+		
+	}
+	
+	
+	private  func extractNNormalizedImageIn(inout imageArray: [Int:IntegralImage],var bgImagePathArray:[String], imageLimit:Int, stageNo:Int){
+	
+		
+//		var imageArray = [Int:IntegralImage]()
+
+		
+		var count = imageArray.count - pImageCount
+
+		var imageIndex = stageNo * 10000
+		for path in bgImagePathArray {
+	
+			
+			var image = readImageFromPath(path)
+			
+			
+			let index = bgImagePathArray.indexOf(path)
+			
+			bgImagePathArray.removeAtIndex(index!)
+			
+			if image != nil {
+		
+				if (image?.size.width > 400 || image?.size.height > 400 ) {
+					
+					
+					var nsize = image?.size
+					
+					nsize?.width /= 2
+					nsize?.height /= 2
+					
+					if nsize?.height > 5000{
+						
+						
+						continue
+						
+					}
+					
+					image = resizeImage(image!, size: nsize!)
+					
+					let unprocessedImageArray = scrollImage(image!)
+					
+					
+					
+					for nimage in unprocessedImageArray {
+						
+						
+						
+						var size = NSZeroSize;
+						
+						size.width = 24;
+						size.height = 24;
+						
+						let img = resizeImage(nimage, size: size)
+						
+						let integralImage = IntegralImage(image: img)
+						
+						
+						
+						integralImage.imageType = ImageType.NonFace
+						
+						integralImage.index = imageIndex
+						imageArray.updateValue(integralImage, forKey: imageIndex)
+						
+						imageIndex++
+						count++;
+						if count == imageLimit{
+							
+							break
+							
+						}
+					}
+					
+				}
+			}
+			if count == imageLimit{
+				
+				break
+				
+			}
+		}
+		
+		
+
+		
+	}
+	
+	private  func extractPNormalizedImage(imagePath:String, imageLimit:Int) -> [Int:IntegralImage]{
+
 		
 		let fileManager = NSFileManager.defaultManager()
 		
@@ -553,81 +726,58 @@ class ViolaJones {
 		var imageArray = [Int:IntegralImage]()
 		
 		var imageIndex = 0;
-		for index in 0...1 {
+		
+		
+		
+		let enumerator:NSDirectoryEnumerator = fileManager.enumeratorAtPath(imagePath)!
+		
+		
+		var count = 0;
+		while let element = enumerator.nextObject() as? String{
 			
 			
-			let enumerator:NSDirectoryEnumerator = fileManager.enumeratorAtPath(imagePathArray[index])!
+			let path = imagePath+"/"+element
+			
+			var image = readImageFromPath(path)
 			
 			
-			var count = 0;
-			while let element = enumerator.nextObject() as? String{
+			
+			if image != nil {
 				
 				
-				let path = imagePathArray[index]+"/"+element
+				var size = NSZeroSize;
 				
-				var image = readImageFromPath(path)
+				size.width = 24;
+				size.height = 24;
+				
+				let img = resizeImage(image!, size: size)
+				
+				let integralImage = IntegralImage(image: img)
 				
 				
+				integralImage.imageType = ImageType.Face
 				
-				if image != nil {
+				integralImage.index = imageIndex
+				imageArray.updateValue(integralImage, forKey: imageIndex)
+				
+				imageIndex++
+				count++;
+				if count == imageLimit{
 					
-					
-					if (image?.size.width > 400 || image?.size.height > 400 ) && index == 1{
-						
-						
-						var nsize = image?.size
-						
-						nsize?.width /= 2
-						nsize?.height /= 2
-						
-						if nsize?.height > 5000{
-						
-						
-							continue
-						
-						}
-						
-						image = resizeImage(image!, size: nsize!)
-						
-						scrollImage(image!)
-						
-					}
-					
-					var size = NSZeroSize;
-					
-					size.width = 24;
-					size.height = 24;
-					
-					let img = resizeImage(image!, size: size)
-					
-					let integralImage = IntegralImage(image: img)
-					
-					if index == ImageType.Face.rawValue {
-						
-						integralImage.imageType = ImageType.Face
-						
-					}
-					integralImage.index = imageIndex
-					imageArray.updateValue(integralImage, forKey: imageIndex)
-					
-					imageIndex++
-					count++;
-					if count == imageLimitArray[index]{
-						
-						break
-						
-					}
+					break
 					
 				}
 				
 			}
+			
 		}
+		
 		
 		return imageArray
 		
 	}
 	
-	private func evaluateCascade(cascade:Cascade,imageArray:[Int:IntegralImage], isOnlyPositive:Bool) -> (Fi:Double, Di:Double){
+	private func evaluateCascade(cascade:Cascade,inout imageArray:[Int:IntegralImage], imageType:ImageType, toDelete:Bool) -> (Fi:Double, Di:Double){
 		
 		var d = 0.0
 		var f = 0.0
@@ -635,7 +785,7 @@ class ViolaJones {
 		let nImageCount = imageArray.count - pImageCount
 		
 		
-		if !isOnlyPositive {
+		if imageType == ImageType.All {
 			
 			for (_,image) in imageArray {
 				
@@ -657,16 +807,19 @@ class ViolaJones {
 			
 			f /= Double(nImageCount)
 			
-		}else{
-			var i = 0
+		}else if imageType == ImageType.Face {
 			
-			for (_,image) in imageArray {
+			
+			for (keyIndex,image) in imageArray {
 				
 				
 				if image.imageType == ImageType.Face {
-					i++
-					d += detectFace(cascade, image:image) ? 1 : 0
 					
+					let detected = detectFace(cascade, image:image)
+					
+					d += detected ? 1 : 0
+					
+				
 				}
 				
 				
@@ -675,13 +828,43 @@ class ViolaJones {
 			d /= Double(pImageCount)
 			
 			
+		}else if imageType == ImageType.NonFace{
+			
+			for (keyIndex,image) in imageArray {
+				
+				
+				if image.imageType == ImageType.NonFace {
+					
+					let detected = detectFace(cascade, image:image)
+					
+//					d += detected ? 1 : 0
+					
+					if toDelete &&  !detected{
+						
+						let dictindex = imageArray.indexForKey(keyIndex)
+						
+						guard dictindex == nil else {
+							imageArray.removeAtIndex(dictindex!)
+							continue
+						}
+						
+					}
+					
+				}
+				
+				
+			}
+			
+			
+		
+			
 		}
 		
 		return (f,d)
 		
 	}
 	
-	private func decreaseThreshold(inout cascade:Cascade,imageArray:[Int:IntegralImage],requiredD:Double) {
+	private func decreaseThreshold(inout cascade:Cascade,var imageArray:[Int:IntegralImage],requiredD:Double) {
 		
 		var minThreshold = 0.0, maxThreshold = cascade.cascadeThreshold!/2
 		
@@ -691,7 +874,7 @@ class ViolaJones {
 			var newThreshold = (minThreshold + maxThreshold)/2
 			cascade.cascadeThreshold = newThreshold
 			
-			let fd = evaluateCascade(cascade,imageArray: imageArray, isOnlyPositive: true)
+			let fd = evaluateCascade(cascade,imageArray: &imageArray, imageType: ImageType.Face,toDelete: false)
 			
 			
 			if fd.Di < requiredD {
@@ -789,7 +972,9 @@ class ViolaJones {
 	
 	
 	
-	func scrollImage(image:NSImage){
+	func scrollImage(image:NSImage) -> [NSImage]{
+		
+		var imageArray:[NSImage] = []
 		
 		var size = NSZeroSize;
 		
@@ -802,7 +987,7 @@ class ViolaJones {
 				
 				
 				
-//				let rect = NSMakeRect(CGFloat(i), CGFloat(j), size.width, size.height)
+				//				let rect = NSMakeRect(CGFloat(i), CGFloat(j), size.width, size.height)
 				
 				
 				let rect = NSMakeRect(CGFloat(j), CGFloat(i), size.height, size.width)
@@ -810,8 +995,8 @@ class ViolaJones {
 				
 				let img = cropToBounds(image, cropRect: rect, size: size)
 				
-				
-				print(rect)
+				imageArray.append(img)
+				//				print(rect)
 			}
 			
 			
@@ -819,14 +1004,16 @@ class ViolaJones {
 		
 		
 		
+		return imageArray
+		
 	}
 	
 	
 	func UUIDString() ->String {
-	var theUUID = CFUUIDCreate(nil)
-	var string = CFUUIDCreateString(nil, theUUID)
-
-	return string as String;
+		var theUUID = CFUUIDCreate(nil)
+		var string = CFUUIDCreateString(nil, theUUID)
+		
+		return string as String;
 	}
 	
 	func cropToBounds(sourceImage: NSImage, cropRect:NSRect,size:NSSize) -> NSImage {
@@ -846,12 +1033,12 @@ class ViolaJones {
 		targetImage?.unlockFocus()
 		
 		
-		var bmpImageRep = NSBitmapImageRep(data: (targetImage?.TIFFRepresentation)!)
+//		var bmpImageRep = NSBitmapImageRep(data: (targetImage?.TIFFRepresentation)!)
 		
-		var data = bmpImageRep?.representationUsingType(NSBitmapImageFileType.NSPNGFileType,properties: [:])
+//		var data = bmpImageRep?.representationUsingType(NSBitmapImageFileType.NSPNGFileType,properties: [:])
 		
 		
-		data?.writeToFile("/Users/mamunul/Documents/generatednonface/"+UUIDString()+".png", atomically: true)
+//		data?.writeToFile("/Users/mamunul/Documents/generatednonface/"+UUIDString()+".png", atomically: true)
 		
 		
 		return targetImage!;

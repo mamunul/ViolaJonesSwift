@@ -42,7 +42,15 @@ struct HaarFeature {
 	init(){
 	
 		
+		imageFeature = [Int:ImageFeature]()
+	
+	}
+	
+	mutating func appendImageFeature(key:Int, value:ImageFeature){
+	
 		
+	
+		imageFeature?.updateValue(value, forKey: key)
 	
 	}
 	
