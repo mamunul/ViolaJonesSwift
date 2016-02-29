@@ -36,16 +36,15 @@ class ViolaJones {
 		
 		pImagePath = ["/Users/mamunul/Documents/MATLAB/my_experiment/faces","/Users/mamunul/Downloads/Face Database/nonfacecollection"]
 		
-		pImageCount = 5000
-		nImageCount = 5000
+		pImageCount = 500
+		nImageCount = 500
+	
 		
 		var starttime = NSDate()
 		
-		var backgroundImageArray  = traverseNonFaceImage(pImagePath[1], limit: 180)
+		var backgroundImageArray  = traverseNonFaceImage(pImagePath[1], limit: 10)
 		
 		var imageArray = extractPNormalizedImage(pImagePath[0], imageLimit: pImageCount)
-		
-		
 		
 		var featureArray = generateHaarFeature(-1)
 		
@@ -63,28 +62,24 @@ class ViolaJones {
 		
 		var f = [Double](count:25, repeatedValue:1.0)
 		var d = [Double](count:25, repeatedValue:1.0)
-		
-		
-		
+	
 		var i = 0;
 		var n = 0
 		while f[i] > overallF || i < stageNumber+1{
-			
-			
-			
+		
 			
 			i = i+1
 			
 			print("cascade started:\(i)")
 			
-			extractNNormalizedImageIn(&imageArray, bgImagePathArray: backgroundImageArray, imageLimit: nImageCount,stageNo: i )
+			extractNNormalizedImageIn(&imageArray, bgImagePathArray: backgroundImageArray, imageLimit: nImageCount,stageNo: i)
 			
 			featureArray = processFeatureValue(featureArray, imageArray: imageArray,imageType: ImageType.NonFace)
 			
 			f[i] = f[i-1]
 			var cascade:Cascade?
 			
-			while f[i] > (fRatePerCascade  * f[i-1]) {
+			while f[i] > (fRatePerCascade  * f[i-1]) || cascade == nil {
 				
 				n++;
 				
@@ -94,11 +89,11 @@ class ViolaJones {
 				
 				decreaseThreshold(&cascade!,imageArray: imageArray, requiredD: (dRatePerCascade * d[i-1]))
 				
-				let fd = evaluateCascade(cascade!, imageArray: &imageArray, imageType: ImageType.All,toDelete: false)
+				let fd = evaluateCascade(cascade!, imageArray: &imageArray, imageType: ImageType.All, toDelete: false)
 				
 				f[i] = fd.Fi
 				
-//				break
+//	break
 				
 			}
 			
@@ -107,10 +102,10 @@ class ViolaJones {
 			
 			evaluateCascade(cascade!, imageArray: &imageArray, imageType: ImageType.NonFace, toDelete: true)
 			
-			if i == 3
+			if i == 12 ||  (imageArray.count - pImageCount) < nImageCount
 			{
 				
-//				break
+				break
 				
 			}
 			
@@ -128,12 +123,6 @@ class ViolaJones {
 		return trainingData
 	}
 	
-	func resizeImage(){
-		
-		
-		
-		
-	}
 	
 	func clearImageData(inout imageArray:[IntegralImage]){
 		
@@ -163,6 +152,7 @@ class ViolaJones {
 					if imageFeature.imageType == ImageType.NonFace {
 						
 						let index = feature.imageFeature?.indexForKey(key)
+						
 						guard index == nil else {
 					
 							feature.imageFeature?.removeAtIndex(index!)
@@ -174,10 +164,7 @@ class ViolaJones {
 				
 				
 				}
-				
-
-				
-				
+	
 			}
 			
 			
@@ -202,7 +189,7 @@ class ViolaJones {
 				
 				feature.imageFeature?.updateValue(imf, forKey: imageIndex)
 				
-				//				print("fv\(fv)")
+				//print("fv\(fv)")
 				
 			}
 			
@@ -499,8 +486,7 @@ class ViolaJones {
 				Tplus += image.weight!
 				
 			} else {
-				
-				
+
 				Tmin += image.weight!
 				
 			}
@@ -685,7 +671,7 @@ class ViolaJones {
 						
 						let img = resizeImage(nimage, size: size)
 						
-						let integralImage = IntegralImage(image: img)
+						let integralImage = IntegralImage(image: img, isGrayScale: false)
 						
 						
 						
@@ -752,7 +738,7 @@ class ViolaJones {
 				
 				let img = resizeImage(image!, size: size)
 				
-				let integralImage = IntegralImage(image: img)
+				let integralImage = IntegralImage(image: img, isGrayScale: true)
 				
 				
 				integralImage.imageType = ImageType.Face

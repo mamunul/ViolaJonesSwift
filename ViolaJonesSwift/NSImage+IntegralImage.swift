@@ -43,6 +43,8 @@ extension NSImage {
 		var r, g, b, a: UInt8
 		var pixels: [[GrayPixel]] = []
 		
+		var res:UInt8
+		
 		for row in 0..<bmp.pixelsHigh {
 			
 			var rowPixels = [GrayPixel]()
@@ -52,11 +54,28 @@ extension NSImage {
 				data = data.advancedBy(1)
 				if !isGrayScale{
 					g = data.memory
+					
+				
 					data = data.advancedBy(1)
 					b = data.memory
+					
+					
 					data = data.advancedBy(1)
 					a = data.memory
 					data = data.advancedBy(1)
+					
+				
+					r = UInt8((Int( r) + Int(b) + Int(g))/3)
+//
+//					var res2 = g
+					
+					
+					
+//					print("r:\(r) g:\(g) b:\(b) res")
+					
+//					r = (r + g + b)
+					
+//					print("")
 				}
 				
 				let p = GrayPixel(p: r, row: row, col: col)

@@ -25,9 +25,9 @@ class IntegralImage {
 	var reUse:Bool = true
 
 	
-	init(image:NSImage){
+	init(image:NSImage, isGrayScale:Bool){
 		
-		self.pixelData = image.pixelData(true)
+		self.pixelData = image.pixelData(isGrayScale)
 		
 		height = (Int)(image.size.height)
 		width = (Int)(image.size.width)
