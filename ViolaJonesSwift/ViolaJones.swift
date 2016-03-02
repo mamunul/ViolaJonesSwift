@@ -36,13 +36,13 @@ class ViolaJones {
 		
 		pImagePath = ["/Users/mamunul/Documents/MATLAB/my_experiment/faces","/Users/mamunul/Downloads/Face Database/nonfacecollection"]
 		
-		pImageCount = 500
-		nImageCount = 500
+		pImageCount = 200
+		nImageCount = 200
 	
 		
 		var starttime = NSDate()
 		
-		var backgroundImageArray  = traverseNonFaceImage(pImagePath[1], limit: 10)
+		var backgroundImageArray  = traverseNonFaceImage(pImagePath[1], limit: 180)
 		
 		var imageArray = extractPNormalizedImage(pImagePath[0], imageLimit: pImageCount)
 		
@@ -74,6 +74,13 @@ class ViolaJones {
 			
 			extractNNormalizedImageIn(&imageArray, bgImagePathArray: backgroundImageArray, imageLimit: nImageCount,stageNo: i)
 			
+			if i == 12 ||  (imageArray.count - pImageCount) < nImageCount
+			{
+				
+				break
+				
+			}
+			
 			featureArray = processFeatureValue(featureArray, imageArray: imageArray,imageType: ImageType.NonFace)
 			
 			f[i] = f[i-1]
@@ -85,6 +92,11 @@ class ViolaJones {
 				
 				cascade = adaptiveBoosting(featureArray,imageArray: imageArray,T: n)
 				
+				if cascade?.cascadeThreshold > Double(INT8_MAX) {
+					
+					break
+				
+				}
 				
 				
 				decreaseThreshold(&cascade!,imageArray: imageArray, requiredD: (dRatePerCascade * d[i-1]))
@@ -102,12 +114,7 @@ class ViolaJones {
 			
 			evaluateCascade(cascade!, imageArray: &imageArray, imageType: ImageType.NonFace, toDelete: true)
 			
-			if i == 12 ||  (imageArray.count - pImageCount) < nImageCount
-			{
-				
-				break
-				
-			}
+		
 			
 		}
 		
@@ -312,7 +319,11 @@ class ViolaJones {
 			
 			cascade.cascadeThreshold! += (strongClassifier.alpha)!
 			
-			
+			if strongClassifier.alpha > Double(INT8_MAX) {
+				
+				break
+				
+			}
 			
 		}
 		print("adaboost ended")
@@ -442,7 +453,10 @@ class ViolaJones {
 				strongClassifier = feature
 				
 				
-				if isnan(strongClassifier.alpha!){
+				print("alpha:\(strongClassifier.alpha), beta:\(beta), error:\(error)")
+				
+				if isnan(strongClassifier.alpha!) || strongClassifier.alpha == nil {
+					
 					print("print")
 					
 				}
@@ -849,6 +863,7 @@ class ViolaJones {
 		return (f,d)
 		
 	}
+
 	
 	private func decreaseThreshold(inout cascade:Cascade,var imageArray:[Int:IntegralImage],requiredD:Double) {
 		
