@@ -36,8 +36,8 @@ class ViolaJones {
 		
 		pImagePath = ["/Users/mamunul/Documents/MATLAB/my_experiment/faces","/Users/mamunul/Downloads/Face Database/nonfacecollection"]
 		
-		pImageCount = 1500
-		nImageCount = 1500
+		pImageCount = 1000
+		nImageCount = 1000
 	
 		
 		let starttime = NSDate()
@@ -115,18 +115,23 @@ class ViolaJones {
 			
 			evaluateCascade(cascade!, imageArray: &imageArray, imageType: ImageType.NonFace, toDelete: true)
 			
+			
+			let endtime = NSDate()
+			trainingData.cascadeArray = cascadeArray
+			trainingData.cascadeCount = cascadeArray.count
+			trainingData.startTime = String(starttime)
+			trainingData.endTime = String(endtime)
+			trainingData.codeLink = "https://github.com/mamunul/ViolaJonesSwift.git"
+			trainingData.pFaceCount = pImageCount
 		
+			var xml = JSonWriter.writeJson(trainingData)
+			
+			JSonWriter.saveToDisk(xml)
 			
 		}
 		
 		
-		let endtime = NSDate()
-		trainingData.cascadeArray = cascadeArray
-		trainingData.cascadeCount = cascadeArray.count
-		trainingData.startTime = String(starttime)
-		trainingData.endTime = String(endtime)
-		trainingData.codeLink = "https://github.com/mamunul/ViolaJonesSwift.git"
-		trainingData.pFaceCount = pImageCount
+
 		
 		return trainingData
 	}
