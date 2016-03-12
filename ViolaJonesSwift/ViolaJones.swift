@@ -16,7 +16,7 @@ struct Point {
 
 enum ImageType:Int{
 	
-	case Face = 0, NonFace,All
+	case Face = 0, NonFace, All
 }
 
 
@@ -36,13 +36,13 @@ class ViolaJones {
 		
 		pImagePath = ["/Users/mamunul/Documents/MATLAB/my_experiment/faces","/Users/mamunul/Downloads/Face Database/nonfacecollection"]
 		
-		pImageCount = 200
-		nImageCount = 200
+		pImageCount = 1500
+		nImageCount = 1500
 	
 		
-		var starttime = NSDate()
+		let starttime = NSDate()
 		
-		var backgroundImageArray  = traverseNonFaceImage(pImagePath[1], limit: 180)
+		let backgroundImageArray  = traverseNonFaceImage(pImagePath[1], limit: 180)
 		
 		var imageArray = extractPNormalizedImage(pImagePath[0], imageLimit: pImageCount)
 		
@@ -69,7 +69,7 @@ class ViolaJones {
 		
 			
 			i = i+1
-			
+			print("Timestamp: \(Timestamp)")
 			print("cascade started:\(i)")
 			
 			extractNNormalizedImageIn(&imageArray, bgImagePathArray: backgroundImageArray, imageLimit: nImageCount,stageNo: i)
@@ -110,7 +110,8 @@ class ViolaJones {
 			}
 			
 			cascadeArray.append(cascade!)
-			print("cascade ended:\(i)")
+			print("Timestamp: \(Timestamp)")
+			print("cascade ended:\(i) size:\(cascade?.featureCount)")
 			
 			evaluateCascade(cascade!, imageArray: &imageArray, imageType: ImageType.NonFace, toDelete: true)
 			
@@ -119,7 +120,7 @@ class ViolaJones {
 		}
 		
 		
-		var endtime = NSDate()
+		let endtime = NSDate()
 		trainingData.cascadeArray = cascadeArray
 		trainingData.cascadeCount = cascadeArray.count
 		trainingData.startTime = String(starttime)
@@ -142,6 +143,10 @@ class ViolaJones {
 			
 		}
 		
+	}
+	
+	var Timestamp: String {
+		return "\(NSDate())"
 	}
 	
 	func processFeatureValue( featureArray:[HaarFeature], imageArray:[Int:IntegralImage], imageType:ImageType) -> [HaarFeature]{
@@ -293,6 +298,8 @@ class ViolaJones {
 		
 		initializeWeight(&imageArray)
 		cascade.cascadeThreshold = 0.0
+		
+		print("Timestamp: \(Timestamp)")
 		print("adaboost started")
 		for _ in 0...T {
 			
@@ -307,6 +314,8 @@ class ViolaJones {
 			strongClassifier.error = 100.0
 			
 			for var feature in featureArray {
+				
+				
 				
 				featureValueWithLowestError(&feature,strongClassifier:&strongClassifier,imageArray: imageArray, T: Tpm)
 				
@@ -326,6 +335,7 @@ class ViolaJones {
 			}
 			
 		}
+		print("Timestamp: \(Timestamp)")
 		print("adaboost ended")
 		
 		//		for var classifier in classifierArray {
@@ -351,7 +361,7 @@ class ViolaJones {
 		
 		
 		
-		for (index,image) in imageArray {
+		for (_,image) in imageArray {
 			
 			
 			let fv = calculateFeatureValue(strongClassifier, integralImage: image)
@@ -382,7 +392,7 @@ class ViolaJones {
 	func featureValueWithLowestError(inout feature:HaarFeature, inout strongClassifier:HaarFeature, imageArray:[Int:IntegralImage], T:(Tplus:Double,Tmin:Double)){
 		
 		
-		var imf = feature.imageFeature!
+		let imf = feature.imageFeature!
 		
 		//		let imageFeatureArray = (imf).sort({$0.featureValue < $1.featureValue})
 		
@@ -421,11 +431,19 @@ class ViolaJones {
 			
 			let error = min(v1, v2)
 			
-			if error < 0 {
-				
-				print("error")
-				
+			if error <= 0 {
+//				print("feature:\(feature.x),\(feature.y),\(feature.w),\(feature.h),\(feature.fw),\(feature.fh)")
+//				print("error is zero")
+				continue
 			}
+			
+//			if error == 0 {
+//			
+//				continue
+//			}
+			
+			
+			
 			feature.error = error
 			
 			if error < lowestError {
@@ -436,7 +454,7 @@ class ViolaJones {
 				lowestError = error
 				feature.thresholdValue = imageFeature.featureValue
 				
-				var beta = calculateBeta(error)
+				let beta = calculateBeta(error)
 				feature.alpha = calculateAlpha(beta)
 				feature.beta = beta
 				if error == v1 {
@@ -453,11 +471,11 @@ class ViolaJones {
 				strongClassifier = feature
 				
 				
-				print("alpha:\(strongClassifier.alpha), beta:\(beta), error:\(error)")
 				
-				if isnan(strongClassifier.alpha!) || strongClassifier.alpha == nil {
+				
+				if isnan(strongClassifier.alpha!) || strongClassifier.alpha == nil || isinf(strongClassifier.alpha!) {
 					
-					print("print")
+					print("alpha:\(strongClassifier.alpha), beta:\(beta), error:\(error)")
 					
 				}
 				//				strongClassifier.alpha = feature.alpha
@@ -810,7 +828,7 @@ class ViolaJones {
 		}else if imageType == ImageType.Face {
 			
 			
-			for (keyIndex,image) in imageArray {
+			for (_,image) in imageArray {
 				
 				
 				if image.imageType == ImageType.Face {
@@ -872,7 +890,7 @@ class ViolaJones {
 		
 		while Int(maxThreshold * 1000) != Int(minThreshold * 1000) {
 			
-			var newThreshold = (minThreshold + maxThreshold)/2
+			let newThreshold = (minThreshold + maxThreshold)/2
 			cascade.cascadeThreshold = newThreshold
 			
 			let fd = evaluateCascade(cascade,imageArray: &imageArray, imageType: ImageType.Face,toDelete: false)
@@ -925,7 +943,7 @@ class ViolaJones {
 	private func readImageFromPath(path:String) ->NSImage?{
 		
 		var image:NSImage?
-		var resizedImage:NSImage?
+//		_:NSImage?
 		
 		if path.hasSuffix("pgm") || path.hasSuffix("jpg") {
 			
@@ -951,9 +969,9 @@ class ViolaJones {
 	func resizeImage(sourceImage:NSImage, size:NSSize ) -> NSImage
 	{
 		
-		var targetFrame = NSMakeRect(0, 0, size.width, size.height)
+		let targetFrame = NSMakeRect(0, 0, size.width, size.height)
 		var targetImage:NSImage?
-		var sourceImageRep = sourceImage.bestRepresentationForRect(targetFrame, context: nil, hints: nil)
+		let sourceImageRep = sourceImage.bestRepresentationForRect(targetFrame, context: nil, hints: nil)
 		
 		
 		
@@ -1011,17 +1029,17 @@ class ViolaJones {
 	
 	
 	func UUIDString() ->String {
-		var theUUID = CFUUIDCreate(nil)
-		var string = CFUUIDCreateString(nil, theUUID)
+		let theUUID = CFUUIDCreate(nil)
+		let string = CFUUIDCreateString(nil, theUUID)
 		
 		return string as String;
 	}
 	
 	func cropToBounds(sourceImage: NSImage, cropRect:NSRect,size:NSSize) -> NSImage {
 		//
-		var context = NSGraphicsContext.currentContext()
-		var imageRect = NSMakeRect(0, 0, size.width, size.height)
-		var targetImage:NSImage? = NSImage(size: size)
+		let context = NSGraphicsContext.currentContext()
+		let imageRect = NSMakeRect(0, 0, size.width, size.height)
+		let targetImage:NSImage? = NSImage(size: size)
 		
 		
 		context?.imageInterpolation = NSImageInterpolation.High
