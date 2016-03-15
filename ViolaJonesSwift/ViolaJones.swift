@@ -37,8 +37,8 @@ class ViolaJones {
 		
 		pImagePath = ["/Users/mamunul/Documents/MATLAB/my_experiment/faces","/Users/mamunul/Downloads/Face Database/nonfacecollection"]
 		
-		pImageCount = 2000
-		nImageCount = 2000
+		pImageCount = 1000
+		nImageCount = 1000
 		
 		
 		let starttime = NSDate()
@@ -46,6 +46,21 @@ class ViolaJones {
 		let backgroundImageArray  = traverseNonFaceImage(pImagePath[1], limit: 180)
 		
 		var imageArray = extractPNormalizedImage(pImagePath[0], imageLimit: pImageCount)
+		
+//		for (index,intImage) in imageArray {
+//		
+//			
+//			var byteData = NSData(bytes: intImage.pixelData, length: 576)
+//			let imageRep = NSBitmapImageRep(data: byteData)
+//			
+//	
+//			var imageSize = NSMakeSize(24, 24);
+//			
+//			var image = NSImage(size: imageSize)
+//			image.addRepresentation(imageRep!)
+//			
+//	
+//		}
 		
 		featureArray = generateHaarFeature(-1)
 		
@@ -273,15 +288,15 @@ class ViolaJones {
 				var A = 0.0, B = 0.0, C = 0.0, D = 0.0
 				
 				
-				A = Double(integralImage.pixelData[nx! - 1 + dx][ny - 1 + dy].p)
+				A = Double(integralImage.pixelData[nx! - 1 + dx][ny - 1 + dy])
 				if ny > 0 {
-					C = Double(integralImage.pixelData[nx! - 1 + dx][ny - 1].p)
+					C = Double(integralImage.pixelData[nx! - 1 + dx][ny - 1])
 				}
 				if nx > 0{
-					B = Double(integralImage.pixelData[nx! - 1][ny - 1 + dy].p)
+					B = Double(integralImage.pixelData[nx! - 1][ny - 1 + dy])
 				}
 				if nx > 0 && ny > 0{
-					D = Double(integralImage.pixelData[nx! - 1][ny - 1].p)
+					D = Double(integralImage.pixelData[nx! - 1][ny - 1])
 				}
 				pixelSum.append( A - B - C + D)
 				
@@ -436,17 +451,32 @@ class ViolaJones {
 		
 		lowestError = (strongClassifier.error)!
 		
+//		for (index,imageFeature) in imf{
+//			
+//			print("image:\(imageFeature.featureValue), index:\(index)")
+//			
+//		}
+		
+		print("\n\nsorting\n\n")
 		let imageFeatureArray = imf.sort { ( f:(Int, ImageFeature), l:(Int, ImageFeature)) -> Bool in
 			
 			f.1.featureValue < l.1.featureValue
 		}
+//		for (index,imageFeature) in imageFeatureArray{
+//			
+//			print("image:\(imageFeature.featureValue), index:\(index)")
+//			
+//		}
 		
+		print("\n\n calculating \n\n")
 		
 		for (index,imageFeature) in imageFeatureArray{
 			
 			
 			//			let imageFeature = imageFeatureArray[index]
 			let image = imageArray[index]
+			
+//			print("image:\(index), w:\(image?.weight), in:\(image?.index), type:\(image?.imageType)")
 			
 			if imageFeature.imageType == ImageType.Face {
 				
@@ -460,6 +490,8 @@ class ViolaJones {
 			
 			let v1 = Splus + T.Tmin - Smin
 			let v2 = Smin + T.Tplus - Splus
+			
+//			print("Splus:\(Splus), Smin:\(Smin), v1:\(v1), v2:\(v2)")
 			
 			
 			let error = min(v1, v2)
@@ -634,9 +666,34 @@ class ViolaJones {
 							
 							let hf = HaarFeature(x:pos_x, y:pos_y, w:width, h:height, fw:point.x, fh:point.y)
 							
-							featureArray.append(hf)
+//							<x>17</x>
+//							<y>7</y>
+//							<w>5</w>
+//							<h>2</h>
+//							<fw>1</fw>
+//							<fh>2</fh>
+//							
+//							<x>15</x>
+//							<y>2</y>
+//							<w>3</w>
+//							<h>2</h>
+//							<fw>1</fw>
+//							<fh>2</fh>
 							
+//							if hf.x == 15 && hf.y == 2 && hf.w == 3 && hf.h == 2 && hf.fw == 1 && hf.fh == 2 {
+//							
+//								featureArray.append(hf)
+//							i++
+//							}
+//							
+//							if hf.x == 17 && hf.y == 7 && hf.w == 5 && hf.h == 2 && hf.fw == 1 && hf.fh == 2 {
+//								
+//								featureArray.append(hf)
+//								i++
+//							}
+							featureArray.append(hf)
 							i++
+							
 						}
 					}
 					if i > limit && limit > 1 {
@@ -745,7 +802,46 @@ class ViolaJones {
 						
 						let integralImage = IntegralImage(image: img, isGrayScale: false)
 						
+						if integralImage.sd < 30{
 						
+//							print("lastp: \(integralImage.pixelData[23][23])")
+//							print("mean: \(integralImage.mean)")
+							
+//							print("sd: \(integralImage.sd)")
+//							print("index: \(imageIndex)")
+							
+							continue
+							
+							
+//							var bmpImageRep = NSBitmapImageRep(data: (img.TIFFRepresentation)!)
+//							//
+//												var data = bmpImageRep?.representationUsingType(NSBitmapImageFileType.NSPNGFileType,properties: [:])
+//							//
+//							//
+//												data?.writeToFile("/Users/mamunul/Documents/generatednonface/"+String(integralImage.sd)+"-"+UUIDString()+".png", atomically: true)
+							//
+							
+							
+						}
+						
+						
+						if integralImage.pixelData[23][23] < 0.04 {
+							
+							//					print("lastp: \(integralImage.pixelData[23][23])")
+							//					print(integralImage.sd)
+							//					print(integralImage.mean)
+							//					var bmpImageRep = NSBitmapImageRep(data: (img.TIFFRepresentation)!)
+							//
+							//							var data = bmpImageRep?.representationUsingType(NSBitmapImageFileType.NSPNGFileType,properties: [:])
+							//
+							//
+							//							data?.writeToFile("/Users/mamunul/Documents/generatednonface/"+UUIDString()+".png", atomically: true)
+							
+							continue
+							
+						}
+						
+//						print("lastp: \(integralImage.pixelData[23][23])")
 						
 						integralImage.imageType = ImageType.NonFace
 						
@@ -810,9 +906,38 @@ class ViolaJones {
 				
 				let img = resizeImage(image!, size: size)
 				
+				
+				
 				let integralImage = IntegralImage(image: img, isGrayScale: true)
 				
+				if integralImage.sd < 30{
+					
+					//							print("lastp: \(integralImage.pixelData[23][23])")
+					//							print("mean: \(integralImage.mean)")
+					
+					//							print("sd: \(integralImage.sd)")
+					//							print("index: \(imageIndex)")
+					
+					continue
+				}
 				
+				if integralImage.pixelData[23][23] < 0.04 {
+				
+//					print("lastp: \(integralImage.pixelData[23][23])")
+//					print(integralImage.sd)
+//					print(integralImage.mean)
+//					var bmpImageRep = NSBitmapImageRep(data: (img.TIFFRepresentation)!)
+//					
+//							var data = bmpImageRep?.representationUsingType(NSBitmapImageFileType.NSPNGFileType,properties: [:])
+//					
+//					
+//							data?.writeToFile("/Users/mamunul/Documents/generatednonface/"+UUIDString()+".png", atomically: true)
+					
+			continue
+				
+				}
+				
+//				print("lastp: \(integralImage.pixelData[23][23])")
 				integralImage.imageType = ImageType.Face
 				
 				integralImage.index = imageIndex
@@ -829,6 +954,9 @@ class ViolaJones {
 			}
 			
 		}
+		
+	
+
 		
 		
 		return imageArray

@@ -12,6 +12,8 @@ import AppKit
 
 extension NSImage {
 	
+	
+	
 	func resizeImage(width: CGFloat, _ height: CGFloat) -> NSImage {
 		let img = NSImage(size: CGSizeMake(width, height))
 		
@@ -24,13 +26,13 @@ extension NSImage {
 		return img
 	}
 	
-	func pixelData(isGrayScale:Bool) -> [[GrayPixel]] {
+	func pixelData(isGrayScale:Bool) -> [[Float]] {
 		
 		var bitmap = self.TIFFRepresentation
 		
 		var bmp = NSBitmapImageRep(data: bitmap!)!
 		
-	
+//	var sum = 0
 //		var bmp = self.representations[0] as! NSBitmapImageRep
 		
 //		[img lockFocus] ;
@@ -41,13 +43,13 @@ extension NSImage {
 	
 		var data: UnsafeMutablePointer<UInt8> = bmp.bitmapData
 		var r, g, b, a: UInt8
-		var pixels: [[GrayPixel]] = []
+		var pixels: [[Float]] = []
 		
 		var res:UInt8
 		
 		for row in 0..<bmp.pixelsHigh {
 			
-			var rowPixels = [GrayPixel]()
+			var rowPixels = [Float]()
 			
 			for col in 0..<bmp.pixelsWide {
 				r = data.memory
@@ -66,27 +68,18 @@ extension NSImage {
 					
 				
 					r = UInt8((Int( r) + Int(b) + Int(g))/3)
-//
-//					var res2 = g
-					
-					
-					
-//					print("r:\(r) g:\(g) b:\(b) res")
-					
-//					r = (r + g + b)
-					
-//					print("")
+
 				}
 				
-				let p = GrayPixel(p: r, row: row, col: col)
-				
-				rowPixels.append(p)
+//				let p = GrayPixel(p: r, row: row, col: col)
+//				sum += Int(r)
+				rowPixels.append(Float(r))
 
 			}
 			
 			pixels.append(rowPixels)
 		}
-		
+//		sum /= 576
 //		print("\(bmp.pixelsHigh):\(bmp.pixelsWide)")
 		return pixels
 	}
