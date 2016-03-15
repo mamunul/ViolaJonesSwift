@@ -35,7 +35,9 @@ class ViolaJones {
 		
 		//		pImagePath = ["/Users/mamunul/Documents/MATLAB/my_experiment/faces","/Users/mamunul/Documents/MATLAB/my_experiment/nonfaces"]
 		
-		pImagePath = ["/Users/mamunul/Documents/MATLAB/my_experiment/faces","/Users/mamunul/Downloads/Face Database/nonfacecollection"]
+//		pImagePath = ["/Users/mamunul/Documents/MATLAB/my_experiment/faces","/Users/mamunul/Downloads/Face Database/nonfacecollection"]
+        
+        pImagePath = ["/Users/mamunul/Desktop/faces","/Users/mamunul/Desktop/nonfacecollection"]
 		
 		pImageCount = 1000
 		nImageCount = 1000
@@ -381,14 +383,14 @@ class ViolaJones {
 		
 		lowestError = (strongClassifier.error)!
 		
-		print("\n\nsorting\n\n")
+//		print("\n\nsorting\n\n")
 		let imageFeatureArray = imf.sort { ( f:(Int, ImageFeature), l:(Int, ImageFeature)) -> Bool in
 			
 			f.1.featureValue < l.1.featureValue
 		}
 		
 		
-		print("\n\n calculating \n\n")
+//		print("\n\n calculating \n\n")
 		
 		for (index,imageFeature) in imageFeatureArray{
 			
